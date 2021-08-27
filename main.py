@@ -10,6 +10,8 @@ from nltk.corpus import wordnet
 #import python GUI package 
 from tkinter import *
 
+import tkinter as tk
+
 #import python automation package
 import pyautogui as pya
 
@@ -36,7 +38,7 @@ def getMeaning():
 			meanings.append(synset.definition())
 
 		#creates a window
-		window = Tk()
+		window = Tk()			
 
 		#get width and height of user screen
 		width= window.winfo_screenwidth()               
@@ -48,19 +50,28 @@ def getMeaning():
 		#title of the window
 		window.title("Vocabulary Builder for GRE aspirants")
 
-		#creates a scrollbar widget for the window
-		scrollbar = Scrollbar(window)
+		label = Label(window, text = word, font=("Arial", 15))
+
+		label.pack(side= TOP, anchor="w")
+
+		#creates a vertical scrollbar widget for the window
+		vertical_scrollbar = Scrollbar(window)
+
+		#creates a horizontal scrollbar widget for the window
+		horizontal_scrollbar = Scrollbar(window, orient = tk.HORIZONTAL)
 
 		#creates list widget
-		mylist = Listbox(window, yscrollcommand = scrollbar.set)
+		mylist = Listbox(window, yscrollcommand = vertical_scrollbar.set, xscrollcommand = horizontal_scrollbar.set, font=("Arial", 12))
 
 		#insert meaning from meanings list into list widget 
 		for i in meanings:
 			mylist.insert(END, i)
 
-		mylist.pack( side = LEFT, fill = BOTH, expand = 1)
+		mylist.pack( side = LEFT, fill = BOTH, expand = 1, padx = 10, pady = 5)
 
-		scrollbar.config( command = mylist.yview )			
+		vertical_scrollbar.config( command = mylist.yview )
+
+		horizontal_scrollbar.config(command = mylist.xview)
 
 		window.mainloop()
 
