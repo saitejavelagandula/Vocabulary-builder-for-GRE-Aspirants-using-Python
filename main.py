@@ -15,66 +15,98 @@ import tkinter as tk
 #import python automation package
 import pyautogui as pya
 
+#import mysql connector
+import mysql.connector
+
+from mysql.connector import Error
+
 #function to get meaning of a copied word
 def getMeaning():
 
-		#wait till user triggers ctrl+shift+a
-		keyboard.wait('ctrl + shift + a')
+		try:			
+			#wait till user triggers ctrl+shift+a
+			keyboard.wait('ctrl + shift + a')
 
-		#execute ctrl+c on selected text
-		pya.hotkey('ctrl', 'c')
+			#execute ctrl+c on selected text
+			pya.hotkey('ctrl', 'c')
 
-		#assign copied word to a variable
-		word = pc.paste()
+			#assign copied word to a variable
+			copied_word = pc.paste()
 
-		#get list of synsets of the copied word using wordnet
-		word_synsets = wordnet.synsets(word)
 
-		#create a list
-		meanings = []
+			#connect to MYSQL remote database
+			connection = mysql.connector.connect(host='sql6.freesqldatabase.com',
+                                         database='sql6433277',
+                                         user='sql6433277',
+                                         password='bRlWX8zjsp')
 
-		#iterate through synsets list, get meaning of each synset and append meaning to the meanings list
-		for synset in word_synsets:
-			meanings.append(synset.definition())
+			cursor = connection.cursor()
 
-		#creates a window
-		window = Tk()			
+			if connection.is_connected():
+				fetch_query = "select * from Words"
+				cursor = connection.cursor()
+				cursor.execute(fetch_query)
+			    # get all records
+				records = cursor.fetchall()
+				if (copied_word,) not in records:
+					mySql_Create_Table_Query = "INSERT INTO Words(word) VALUES(%s)"
+					record = (copied_word,)
+					result = cursor.execute(mySql_Create_Table_Query, record)
+					connection.commit()
+					print("Record inserted successfully")
 
-		#get width and height of user screen
-		width= window.winfo_screenwidth()               
-		height= window.winfo_screenheight()
+			#get list of synsets of the copied word using wordnet
+			copied_word_synsets = wordnet.synsets(copied_word)
 
-		#creates window based on user's screen dimensions
-		window.geometry("%dx%d" % (width, height))
+			#create a list
+			meanings = []
 
-		#title of the window
-		window.title("Vocabulary Builder for GRE aspirants")
+			#iterate through synsets list, get meaning of each synset and append meaning to the meanings list
+			for synset in copied_word_synsets:
+				meanings.append(synset.definition())
 
-		label = Label(window, text = word, font=("Arial", 15))
+			#creates a window
+			window = Tk()			
 
-		label.pack(side= TOP, anchor="w")
+			#get width and height of user screen
+			width= window.winfo_screenwidth()               
+			height= window.winfo_screenheight()
 
-		#creates a vertical scrollbar widget for the window
-		vertical_scrollbar = Scrollbar(window)
+			#creates window based on user's screen dimensions
+			window.geometry("%dx%d" % (width, height))
 
-		#creates a horizontal scrollbar widget for the window
-		horizontal_scrollbar = Scrollbar(window, orient = tk.HORIZONTAL)
+			#title of the window
+			window.title("Vocabulary Builder for GRE aspirants")
 
-		#creates list widget
-		mylist = Listbox(window, yscrollcommand = vertical_scrollbar.set, xscrollcommand = horizontal_scrollbar.set, font=("Arial", 12))
+			label = Label(window, text = copied_word, font=("Arial", 15))
 
-		#insert meaning from meanings list into list widget 
-		for i in meanings:
-			mylist.insert(END, i)
+			label.pack(side= TOP, anchor="w")
 
-		mylist.pack( side = LEFT, fill = BOTH, expand = 1, padx = 10, pady = 5)
+			#creates a vertical scrollbar widget for the window
+			vertical_scrollbar = Scrollbar(window)
 
-		vertical_scrollbar.config( command = mylist.yview )
+			#creates a horizontal scrollbar widget for the window
+			horizontal_scrollbar = Scrollbar(window, orient = tk.HORIZONTAL)
 
-		horizontal_scrollbar.config(command = mylist.xview)
+			#creates list widget
+			mylist = Listbox(window, yscrollcommand = vertical_scrollbar.set, xscrollcommand = horizontal_scrollbar.set, font=("Arial", 12))
 
-		window.mainloop()
+			#insert meaning from meanings list into list widget 
+			for i in meanings:
+				mylist.insert(END, i)
 
-		getMeaning()
+			mylist.pack( side = LEFT, fill = BOTH, expand = 1, padx = 10, pady = 5)
+
+			vertical_scrollbar.config( command = mylist.yview )
+
+			horizontal_scrollbar.config(command = mylist.xview)
+
+			window.mainloop()
+
+			getMeaning()
+
+		except Error as e:
+			print(e)
+
 				
 getMeaning()
